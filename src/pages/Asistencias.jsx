@@ -99,7 +99,7 @@ export default function Asistencias() {
         </div>
 
         {/* Lista de Alumnos para Tomar Lista */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-blue-600">
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto border-t-4 border-blue-600">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

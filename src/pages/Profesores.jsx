@@ -10,6 +10,7 @@ export default function Profesores() {
   const [especialidad, setEspecialidad] = useState('');
   const [telefono, setTelefono] = useState('');
   const [guardando, setGuardando] = useState(false);
+  
   const [idEditando, setIdEditando] = useState(null);
 
   useEffect(() => {
@@ -29,9 +30,9 @@ export default function Profesores() {
   };
 
   const activarEdicion = (profesor) => {
-    setNombre(profesor.nombre);
-    setEspecialidad(profesor.especialidad);
-    setTelefono(profesor.telefono);
+    setNombre(profesor.nombre || '');
+    setEspecialidad(profesor.especialidad || '');
+    setTelefono(profesor.telefono || '');
     setIdEditando(profesor.id);
   };
 
@@ -52,11 +53,13 @@ export default function Profesores() {
           .from('profesores')
           .update({ nombre: nombre, especialidad: especialidad, telefono: telefono })
           .eq('id', idEditando);
+          
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('profesores')
           .insert([{ nombre: nombre, especialidad: especialidad, telefono: telefono }]);
+          
         if (error) throw error;
       }
 
@@ -97,7 +100,7 @@ export default function Profesores() {
           </Link>
         </div>
 
-        <div className={`bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 ${idEditando ? 'border-yellow-500' : 'border-green-600'}`}>
+        <div className={`bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 ${idEditando ? 'border-yellow-500' : 'border-green-500'}`}>
           <h2 className="text-lg font-bold text-gray-800 mb-4">
             {idEditando ? 'Editar Profesor' : 'Registrar Nuevo Profesor'}
           </h2>
@@ -113,15 +116,15 @@ export default function Profesores() {
               className="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 bg-white"
             >
               <option value="" disabled>Selecciona una especialidad...</option>
-              <option value="Diseño Web y UI/UX">Diseño Web y UI/UX</option>
-              <option value="Programación Backend">Programación Backend</option>
-              <option value="Base de Datos">Base de Datos</option>
-              <option value="Matemáticas">Matemáticas</option>
+              <option value="Diseño y Programación Web">Diseño y Programación Web</option>
+              <option value="Enfermería Técnica">Enfermería Técnica</option>
+              <option value="Mecánica Automotriz">Mecánica Automotriz</option>
+              <option value="Matemáticas / Ciencias">Matemáticas / Ciencias</option>
             </select>
             <input 
-              type="tel" placeholder="Teléfono" required maxLength="9"
+              type="text" placeholder="Teléfono" required maxLength="9"
               value={telefono} onChange={(e) => setTelefono(e.target.value)}
-              className="w-full md:w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500"
+              className="w-full md:w-36 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500"
             />
             
             <div className="flex gap-2 w-full md:w-auto">
@@ -167,7 +170,7 @@ export default function Profesores() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button 
                       onClick={() => activarEdicion(profesor)}
-                      className="text-green-600 hover:text-green-900 mr-4"
+                      className="text-blue-600 hover:text-blue-900 mr-4"
                     >
                       Editar
                     </button>

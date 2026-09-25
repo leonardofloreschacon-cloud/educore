@@ -5,7 +5,7 @@ import { supabase } from './supabase'; // Importamos la conexión
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Alumnos from './pages/Alumnos';
-import Profesores from './pages/Profesores';
+import Profesores from './pages/Profesores'; // 🛡️ IMPORTANTE: Solo se puede acceder a este módulo si ya hay una sesión iniciada
 import Asistencias from './pages/Asistencias';
 import Comunicados from './pages/Comunicados';
 import Calificaciones from './pages/Calificaciones';

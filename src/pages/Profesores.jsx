@@ -106,10 +106,13 @@ export default function Profesores() {
           </h2>
           
           <form onSubmit={guardarProfesor} className="flex flex-col md:flex-row gap-4 items-center">
-            <input 
-              type="text" placeholder="Nombre completo" required 
-              value={nombre} onChange={(e) => setNombre(e.target.value)}
-              className="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500"
+            <input
+              type="text"
+              placeholder="Escribe el curso (Ej: Administración de un Sitio Web)"
+              value={especialidad}
+              onChange={(e) => setEspecialidad(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500"
+              required
             />
             <select 
               required value={especialidad} onChange={(e) => setEspecialidad(e.target.value)}

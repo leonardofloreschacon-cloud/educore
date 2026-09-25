@@ -7,6 +7,9 @@ import Dashboard from './pages/Dashboard';
 import Alumnos from './pages/Alumnos';
 import Profesores from './pages/Profesores';
 import Asistencias from './pages/Asistencias';
+import Comunicados from './pages/Comunicados';
+import Calificaciones from './pages/Calificaciones';
+
 
 function App() {
   const [sesion, setSesion] = useState(null);

@@ -6,9 +6,8 @@ export default function Alumnos() {
   const [alumnos, setAlumnos] = useState([]);
   const [cargando, setCargando] = useState(true);
   
-  const [nombre, setNombre] = useState('');
-  const [dni, setDni] = useState('');
-  const [carrera, setCarrera] = useState('');
+  const [nombres, setNombres] = useState('');
+  const [apellidos, setApellidos] = useState('');
   const [guardando, setGuardando] = useState(false);
   
   const [idEditando, setIdEditando] = useState(null);
@@ -19,7 +18,6 @@ export default function Alumnos() {
 
   const obtenerAlumnos = async () => {
     try {
-      // CAMBIO AQUÍ: de 'alumnos' a 'estudiantes'
       const { data, error } = await supabase.from('estudiantes').select('*').order('id', { ascending: true });
       if (error) throw error;
       if (data) setAlumnos(data);
@@ -31,16 +29,14 @@ export default function Alumnos() {
   };
 
   const activarEdicion = (alumno) => {
-    setNombre(alumno.nombre);
-    setDni(alumno.dni);
-    setCarrera(alumno.carrera);
+    setNombres(alumno.nombres || '');
+    setApellidos(alumno.apellidos || '');
     setIdEditando(alumno.id);
   };
 
   const cancelarEdicion = () => {
-    setNombre('');
-    setDni('');
-    setCarrera('');
+    setNombres('');
+    setApellidos('');
     setIdEditando(null);
   };
 
@@ -50,18 +46,16 @@ export default function Alumnos() {
     
     try {
       if (idEditando) {
-        // CAMBIO AQUÍ: de 'alumnos' a 'estudiantes'
         const { error } = await supabase
           .from('estudiantes')
-          .update({ nombre: nombre, dni: dni, carrera: carrera })
+          .update({ nombres: nombres, apellidos: apellidos })
           .eq('id', idEditando);
           
         if (error) throw error;
       } else {
-        // CAMBIO AQUÍ: de 'alumnos' a 'estudiantes'
         const { error } = await supabase
           .from('estudiantes')
-          .insert([{ nombre: nombre, dni: dni, carrera: carrera }]);
+          .insert([{ nombres: nombres, apellidos: apellidos }]);
           
         if (error) throw error;
       }
@@ -80,7 +74,6 @@ export default function Alumnos() {
     const confirmar = window.confirm(`¿Estás seguro de que deseas eliminar a ${nombreAlumno}?`);
     if (confirmar) {
       try {
-        // CAMBIO AQUÍ: de 'alumnos' a 'estudiantes'
         const { error } = await supabase.from('estudiantes').delete().eq('id', id);
         if (error) throw error;
         obtenerAlumnos();
@@ -95,7 +88,7 @@ export default function Alumnos() {
       <div className="max-w-7xl mx-auto">
         
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-900">Módulo de Alumnos (Estudiantes)</h1>
+          <h1 className="text-3xl font-bold text-blue-900">Módulo de Estudiantes</h1>
           <Link 
             to="/dashboard" 
             className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium"
@@ -106,29 +99,20 @@ export default function Alumnos() {
 
         <div className={`bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 ${idEditando ? 'border-yellow-500' : 'border-green-500'}`}>
           <h2 className="text-lg font-bold text-gray-800 mb-4">
-            {idEditando ? 'Editar Estudiante' : 'Matricular Nuevo Estudiante'}
+            {idEditando ? 'Editar Estudiante' : 'Registrar Nuevo Estudiante'}
           </h2>
           
           <form onSubmit={guardarAlumno} className="flex flex-col md:flex-row gap-4 items-center">
             <input 
-              type="text" placeholder="Nombre completo" required 
-              value={nombre} onChange={(e) => setNombre(e.target.value)}
+              type="text" placeholder="Nombres" required 
+              value={nombres} onChange={(e) => setNombres(e.target.value)}
               className="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500"
             />
             <input 
-              type="text" placeholder="DNI" required maxLength="8"
-              value={dni} onChange={(e) => setDni(e.target.value)}
-              className="w-full md:w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500"
+              type="text" placeholder="Apellidos" required 
+              value={apellidos} onChange={(e) => setApellidos(e.target.value)}
+              className="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500"
             />
-            <select 
-              required value={carrera} onChange={(e) => setCarrera(e.target.value)}
-              className="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 bg-white"
-            >
-              <option value="" disabled>Selecciona una carrera...</option>
-              <option value="Diseño y Programación Web">Diseño y Programación Web</option>
-              <option value="Enfermería Técnica">Enfermería Técnica</option>
-              <option value="Mecánica Automotriz">Mecánica Automotriz</option>
-            </select>
             
             <div className="flex gap-2 w-full md:w-auto">
               <button 
@@ -154,22 +138,20 @@ export default function Alumnos() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DNI</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carrera</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombres</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Apellidos</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               
-              {cargando && <tr><td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">Cargando base de datos...</td></tr>}
-              {!cargando && alumnos.length === 0 && <tr><td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">No hay estudiantes registrados aún.</td></tr>}
+              {cargando && <tr><td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">Cargando base de datos...</td></tr>}
+              {!cargando && alumnos.length === 0 && <tr><td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">No hay estudiantes registrados aún.</td></tr>}
 
               {!cargando && alumnos.map((alumno) => (
                 <tr key={alumno.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{alumno.nombre}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{alumno.dni}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{alumno.carrera}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{alumno.nombres}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{alumno.apellidos}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button 
                       onClick={() => activarEdicion(alumno)}
@@ -178,7 +160,7 @@ export default function Alumnos() {
                       Editar
                     </button>
                     <button 
-                      onClick={() => eliminarAlumno(alumno.id, alumno.nombre)}
+                      onClick={() => eliminarAlumno(alumno.id, alumno.nombres)}
                       className="text-red-600 hover:text-red-900"
                     >
                       Eliminar

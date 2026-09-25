@@ -50,11 +50,11 @@ function App() {
         <Route path="/dashboard" element={sesion ? <Dashboard /> : <Navigate to="/login" replace />} />
         <Route path="/alumnos" element={sesion ? <Alumnos /> : <Navigate to="/login" replace />} />
         <Route path="/profesores" element={sesion ? <Profesores /> : <Navigate to="/login" replace />} />
-        
+    
+        <Route path="/asistencias" element={sesion ? <Asistencias /> : <Navigate to="/login" replace />} />
         <Route path="/comunicados" element={<Comunicados />} />
         <Route path="/calificaciones" element={<Calificaciones />} />
-        
-        <Route path="/asistencias" element={sesion ? <Asistencias /> : <Navigate to="/login" replace />} />
+      
       </Routes>
     </BrowserRouter>
   );

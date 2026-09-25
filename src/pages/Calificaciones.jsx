@@ -47,7 +47,7 @@ export default function Calificaciones() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Registro</th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">ID Alumno</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estudiante</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Curso</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Periodo</th>
                 <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Nota Final</th>
@@ -59,7 +59,7 @@ export default function Calificaciones() {
               {!cargando && calificaciones.length === 0 && <tr><td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">Los profesores aún no han registrado calificaciones.</td></tr>}
 
               {!cargando && calificaciones.map((registro) => {
-                // Validación para pintar de rojo si está reprobado (nota menor a 11 o 13 dependiendo de tu escala)
+                // Validación para pintar de rojo si la nota es menor a 13
                 const esReprobado = Number(registro.nota) < 13; 
 
                 return (
@@ -67,8 +67,9 @@ export default function Calificaciones() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(registro.created_at).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      Alumno #{registro.alumno_id}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                      {/* Muestra el nombre real del alumno y tiene un respaldo por si hay registros antiguos */}
+                      {registro.alumno_nombre || `Alumno #${registro.alumno_id}`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {registro.curso}

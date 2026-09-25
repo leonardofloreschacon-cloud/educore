@@ -11,7 +11,6 @@ export default function Alumnos() {
   const [carrera, setCarrera] = useState('');
   const [guardando, setGuardando] = useState(false);
   
-  // NUEVO ESTADO: Nos dirá si estamos editando y qué ID
   const [idEditando, setIdEditando] = useState(null);
 
   useEffect(() => {
@@ -20,17 +19,17 @@ export default function Alumnos() {
 
   const obtenerAlumnos = async () => {
     try {
-      const { data, error } = await supabase.from('alumnos').select('*').order('id', { ascending: true });
+      // CAMBIO AQUÍ: de 'alumnos' a 'estudiantes'
+      const { data, error } = await supabase.from('estudiantes').select('*').order('id', { ascending: true });
       if (error) throw error;
       if (data) setAlumnos(data);
     } catch (error) {
-      console.error("Error al traer los alumnos:", error.message);
+      console.error("Error al traer los estudiantes:", error.message);
     } finally {
       setCargando(false);
     }
   };
 
-  // NUEVA FUNCIÓN: Sube los datos del alumno a las casillas de arriba
   const activarEdicion = (alumno) => {
     setNombre(alumno.nombre);
     setDni(alumno.dni);
@@ -38,7 +37,6 @@ export default function Alumnos() {
     setIdEditando(alumno.id);
   };
 
-  // NUEVA FUNCIÓN: Limpia las casillas y sale del modo edición
   const cancelarEdicion = () => {
     setNombre('');
     setDni('');
@@ -46,31 +44,30 @@ export default function Alumnos() {
     setIdEditando(null);
   };
 
-  // FUNCIÓN MODIFICADA: Ahora sabe si debe Crear o Actualizar
   const guardarAlumno = async (e) => {
     e.preventDefault();
     setGuardando(true);
     
     try {
       if (idEditando) {
-        // MODO EDICIÓN: Actualizar el registro existente
+        // CAMBIO AQUÍ: de 'alumnos' a 'estudiantes'
         const { error } = await supabase
-          .from('alumnos')
+          .from('estudiantes')
           .update({ nombre: nombre, dni: dni, carrera: carrera })
-          .eq('id', idEditando); // Condición clave: Solo actualiza este ID
+          .eq('id', idEditando);
           
         if (error) throw error;
       } else {
-        // MODO CREACIÓN: Insertar uno nuevo
+        // CAMBIO AQUÍ: de 'alumnos' a 'estudiantes'
         const { error } = await supabase
-          .from('alumnos')
+          .from('estudiantes')
           .insert([{ nombre: nombre, dni: dni, carrera: carrera }]);
           
         if (error) throw error;
       }
 
-      cancelarEdicion(); // Limpiamos todo
-      obtenerAlumnos();  // Refrescamos la lista
+      cancelarEdicion();
+      obtenerAlumnos();
       
     } catch (error) {
       alert("Hubo un error al guardar: " + error.message);
@@ -83,7 +80,8 @@ export default function Alumnos() {
     const confirmar = window.confirm(`¿Estás seguro de que deseas eliminar a ${nombreAlumno}?`);
     if (confirmar) {
       try {
-        const { error } = await supabase.from('alumnos').delete().eq('id', id);
+        // CAMBIO AQUÍ: de 'alumnos' a 'estudiantes'
+        const { error } = await supabase.from('estudiantes').delete().eq('id', id);
         if (error) throw error;
         obtenerAlumnos();
       } catch (error) {
@@ -97,7 +95,7 @@ export default function Alumnos() {
       <div className="max-w-7xl mx-auto">
         
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-900">Módulo de Alumnos</h1>
+          <h1 className="text-3xl font-bold text-blue-900">Módulo de Alumnos (Estudiantes)</h1>
           <Link 
             to="/dashboard" 
             className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium"
@@ -106,10 +104,9 @@ export default function Alumnos() {
           </Link>
         </div>
 
-        {/* El formulario cambia de color y título dependiendo si editamos o creamos */}
         <div className={`bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 ${idEditando ? 'border-yellow-500' : 'border-green-500'}`}>
           <h2 className="text-lg font-bold text-gray-800 mb-4">
-            {idEditando ? 'Editar Alumno' : 'Matricular Nuevo Alumno'}
+            {idEditando ? 'Editar Estudiante' : 'Matricular Nuevo Estudiante'}
           </h2>
           
           <form onSubmit={guardarAlumno} className="flex flex-col md:flex-row gap-4 items-center">
@@ -141,7 +138,6 @@ export default function Alumnos() {
                 {guardando ? 'Guardando...' : (idEditando ? 'Actualizar' : 'Guardar')}
               </button>
               
-              {/* Este botón solo aparece si estamos editando */}
               {idEditando && (
                 <button 
                   type="button" onClick={cancelarEdicion}
@@ -167,7 +163,7 @@ export default function Alumnos() {
             <tbody className="bg-white divide-y divide-gray-200">
               
               {cargando && <tr><td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">Cargando base de datos...</td></tr>}
-              {!cargando && alumnos.length === 0 && <tr><td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">No hay alumnos registrados aún.</td></tr>}
+              {!cargando && alumnos.length === 0 && <tr><td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">No hay estudiantes registrados aún.</td></tr>}
 
               {!cargando && alumnos.map((alumno) => (
                 <tr key={alumno.id} className="hover:bg-gray-50">
@@ -175,7 +171,6 @@ export default function Alumnos() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{alumno.dni}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{alumno.carrera}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {/* Botón Editar que llama a la nueva función */}
                     <button 
                       onClick={() => activarEdicion(alumno)}
                       className="text-blue-600 hover:text-blue-900 mr-4"

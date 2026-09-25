@@ -3,54 +3,46 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 
 export default function Asistencias() {
-  const [estudiantes, setEstudiantes] = useState([]);
+  const [asistencias, setAsistencias] = useState([]);
   const [cargando, setCargando] = useState(true);
   
-  // Fecha actual en formato YYYY-MM-DD para la base de datos
+  // Establecer la fecha actual por defecto para el filtro
   const fechaHoy = new Date().toISOString().split('T')[0];
-  const [fechaSeleccionada, setFechaSeleccionada] = useState(fechaHoy);
-  const [guardandoId, setGuardandoId] = useState(null);
+  const [fechaFiltro, setFechaFiltro] = useState(fechaHoy);
 
+  // Estado para los contadores (Estadísticas rápidas)
+  const [estadisticas, setEstadisticas] = useState({ presentes: 0, tardanzas: 0, faltas: 0 });
+
+  // Cuando cambie la fecha, volvemos a consultar a la base de datos
   useEffect(() => {
-    obtenerEstudiantes();
-  }, []);
+    obtenerAsistencias();
+  }, [fechaFiltro]);
 
-  // 1. Traemos a todos los estudiantes de la tabla unificada 'estudiantes'
-  const obtenerEstudiantes = async () => {
+  const obtenerAsistencias = async () => {
+    setCargando(true);
     try {
-      const { data, error } = await supabase.from('estudiantes').select('*').order('id', { ascending: true });
+      // 1. Consultar la tabla "asistencias" filtrando por la fecha seleccionada
+      const { data, error } = await supabase
+        .from('asistencias')
+        .select('*')
+        .eq('fecha', fechaFiltro)
+        .order('created_at', { ascending: false });
+
       if (error) throw error;
-      if (data) setEstudiantes(data);
+
+      if (data) {
+        setAsistencias(data);
+        
+        // 2. Calcular estadísticas automáticas para el Administrador
+        const presentes = data.filter(a => a.estado === 'Presente').length;
+        const tardanzas = data.filter(a => a.estado === 'Tardanza').length;
+        const faltas = data.filter(a => a.estado === 'Falta').length;
+        setEstadisticas({ presentes, tardanzas, faltas });
+      }
     } catch (error) {
-      console.error("Error al traer los estudiantes:", error.message);
+      console.error("Error al traer las asistencias:", error.message);
     } finally {
       setCargando(false);
-    }
-  };
-
-  // 2. Función para registrar la asistencia en Supabase
-  const registrarAsistencia = async (estudiante, estadoAsistencia) => {
-    setGuardandoId(estudiante.id);
-    try {
-      const nombreCompleto = `${estudiante.nombres || ''} ${estudiante.apellidos || ''}`.trim();
-
-      const { error } = await supabase
-        .from('asistencias') // Asegúrate de que tu tabla en Supabase se llame 'asistencias'
-        .insert([
-          {
-            fecha: fechaSeleccionada,
-            alumno_id: estudiante.id,
-            alumno_nombre: nombreCompleto,
-            estado: estadoAsistencia
-          }
-        ]);
-
-      if (error) throw error;
-      alert(`¡Asistencia registrada como "${estadoAsistencia}" para ${nombreCompleto}!`);
-    } catch (error) {
-      alert("Error al registrar asistencia: " + error.message);
-    } finally {
-      setGuardandoId(null);
     }
   };
 
@@ -59,7 +51,7 @@ export default function Asistencias() {
       <div className="max-w-7xl mx-auto">
         
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-purple-900">Módulo de Asistencias</h1>
+          <h1 className="text-3xl font-bold text-purple-900">Auditoría de Asistencias</h1>
           <Link 
             to="/dashboard" 
             className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition-colors font-medium"
@@ -68,60 +60,63 @@ export default function Asistencias() {
           </Link>
         </div>
 
-        {/* Selector de Fecha */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Seleccionar Fecha:</label>
-          <input 
-            type="date" 
-            value={fechaSeleccionada} 
-            onChange={(e) => setFechaSeleccionada(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-purple-500"
-          />
+        {/* Panel Superior: Filtro y Estadísticas Diarias */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 flex flex-col md:flex-row justify-between items-center gap-6 border-t-4 border-purple-500">
+          <div className="w-full md:w-auto">
+            <label className="block text-sm font-bold text-gray-700 mb-2">Filtrar por Fecha:</label>
+            <input 
+              type="date" 
+              value={fechaFiltro} 
+              onChange={(e) => setFechaFiltro(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-purple-500 w-full"
+            />
+          </div>
+
+          <div className="flex gap-4 w-full md:w-auto justify-between">
+            <div className="bg-green-50 px-6 py-3 rounded-lg text-center border border-green-200 flex-1">
+              <p className="text-xs text-green-600 font-bold uppercase">Presentes</p>
+              <p className="text-2xl font-black text-green-700">{estadisticas.presentes}</p>
+            </div>
+            <div className="bg-yellow-50 px-6 py-3 rounded-lg text-center border border-yellow-200 flex-1">
+              <p className="text-xs text-yellow-600 font-bold uppercase">Tardanzas</p>
+              <p className="text-2xl font-black text-yellow-700">{estadisticas.tardanzas}</p>
+            </div>
+            <div className="bg-red-50 px-6 py-3 rounded-lg text-center border border-red-200 flex-1">
+              <p className="text-xs text-red-600 font-bold uppercase">Faltas</p>
+              <p className="text-2xl font-black text-red-700">{estadisticas.faltas}</p>
+            </div>
+          </div>
         </div>
 
-        {/* Tabla Dinámica con los Estudiantes de Supabase */}
-        <div className="bg-white rounded-lg shadow-md overflow-x-auto border-t-4 border-purple-600">
+        {/* Tabla de Solo Lectura para el Administrador */}
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado de Asistencia</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Registro</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estudiante</th>
+                <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Estado Reportado</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               
-              {cargando && <tr><td colSpan="2" className="px-6 py-4 text-center text-sm text-gray-500">Cargando lista de estudiantes...</td></tr>}
-              {!cargando && estudiantes.length === 0 && <tr><td colSpan="2" className="px-6 py-4 text-center text-sm text-gray-500">No hay estudiantes registrados.</td></tr>}
+              {cargando && <tr><td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">Consultando registros en la base de datos...</td></tr>}
+              {!cargando && asistencias.length === 0 && <tr><td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">No hay asistencias registradas por los docentes en esta fecha.</td></tr>}
 
-              {!cargando && estudiantes.map((estudiante) => (
-                <tr key={estudiante.id} className="hover:bg-gray-50">
+              {!cargando && asistencias.map((registro) => (
+                <tr key={registro.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{registro.fecha}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {estudiante.nombres} {estudiante.apellidos}
+                    {registro.alumno_nombre}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                    <div className="flex justify-center gap-2">
-                      <button 
-                        disabled={guardandoId === estudiante.id}
-                        onClick={() => registrarAsistencia(estudiante, 'Presente')}
-                        className="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1 rounded-md text-xs font-semibold transition-colors"
-                      >
-                        Presente
-                      </button>
-                      <button 
-                        disabled={guardandoId === estudiante.id}
-                        onClick={() => registrarAsistencia(estudiante, 'Tardanza')}
-                        className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 px-3 py-1 rounded-md text-xs font-semibold transition-colors"
-                      >
-                        Tardanza
-                      </button>
-                      <button 
-                        disabled={guardandoId === estudiante.id}
-                        onClick={() => registrarAsistencia(estudiante, 'Falta')}
-                        className="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 rounded-md text-xs font-semibold transition-colors"
-                      >
-                        Falta
-                      </button>
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      ${registro.estado === 'Presente' ? 'bg-green-100 text-green-800' : ''}
+                      ${registro.estado === 'Tardanza' ? 'bg-yellow-100 text-yellow-800' : ''}
+                      ${registro.estado === 'Falta' ? 'bg-red-100 text-red-800' : ''}
+                    `}>
+                      {registro.estado}
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -129,6 +124,7 @@ export default function Asistencias() {
             </tbody>
           </table>
         </div>
+
       </div>
     </div>
   );

@@ -106,23 +106,23 @@ export default function Profesores() {
           </h2>
           
           <form onSubmit={guardarProfesor} className="flex flex-col md:flex-row gap-4 items-center">
-            <input
-              type="text"
-              placeholder="Escribe el curso (Ej: Administración de un Sitio Web)"
+            <input 
+              type="text" placeholder="Nombre completo" required 
+              value={nombre} onChange={(e) => setNombre(e.target.value)}
+              className="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500"
+            />
+            <select
               value={especialidad}
               onChange={(e) => setEspecialidad(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500"
               required
-            />
-            <select 
-              required value={especialidad} onChange={(e) => setEspecialidad(e.target.value)}
-              className="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 bg-white"
             >
-              <option value="" disabled>Selecciona una especialidad...</option>
-              <option value="Diseño y Programación Web">Diseño y Programación Web</option>
-              <option value="Enfermería Técnica">Enfermería Técnica</option>
-              <option value="Mecánica Automotriz">Mecánica Automotriz</option>
-              <option value="Matemáticas / Ciencias">Matemáticas / Ciencias</option>
+              <option value="" disabled>Selecciona un curso...</option>
+              <option value="Administración de un Sitio Web">Administración de un Sitio Web</option>
+              <option value="Desarrollo de Aplicaciones Empresariales">Desarrollo de Aplicaciones Empresariales</option>
+              <option value="Despliegue de Aplicaciones Móviles">Despliegue de Aplicaciones Móviles</option>
+              <option value="Documentación en Sistemas">Documentación en Sistemas</option>
+              <option value="Despliegue de Servicios Web">Despliegue de Servicios Web</option>
             </select>
             <input 
               type="text" placeholder="Teléfono" required maxLength="9"

@@ -2,84 +2,69 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 
-export default function Alumnos() {
-  const [alumnos, setAlumnos] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  
+export default function Estudiantes() {
+  const [estudiantes, setEstudiantes] = useState([]);
   const [nombres, setNombres] = useState('');
   const [apellidos, setApellidos] = useState('');
-  const [guardando, setGuardando] = useState(false);
-  
-  const [idEditando, setIdEditando] = useState(null);
+  const [correo, setCorreo] = useState(''); // Nuevo estado para el correo
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    obtenerAlumnos();
+    obtenerEstudiantes();
   }, []);
 
-  const obtenerAlumnos = async () => {
+  const obtenerEstudiantes = async () => {
+    setCargando(true);
     try {
-      const { data, error } = await supabase.from('estudiantes').select('*').order('id', { ascending: true });
+      const { data, error } = await supabase
+        .from('estudiantes')
+        .select('*')
+        .order('id', { ascending: true });
+
       if (error) throw error;
-      if (data) setAlumnos(data);
+      if (data) setEstudiantes(data);
     } catch (error) {
-      console.error("Error al traer los estudiantes:", error.message);
+      console.error("Error al traer estudiantes:", error.message);
     } finally {
       setCargando(false);
     }
   };
 
-  const activarEdicion = (alumno) => {
-    setNombres(alumno.nombres || '');
-    setApellidos(alumno.apellidos || '');
-    setIdEditando(alumno.id);
-  };
-
-  const cancelarEdicion = () => {
-    setNombres('');
-    setApellidos('');
-    setIdEditando(null);
-  };
-
-  const guardarAlumno = async (e) => {
+  const guardarEstudiante = async (e) => {
     e.preventDefault();
-    setGuardando(true);
-    
-    try {
-      if (idEditando) {
-        const { error } = await supabase
-          .from('estudiantes')
-          .update({ nombres: nombres, apellidos: apellidos })
-          .eq('id', idEditando);
-          
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('estudiantes')
-          .insert([{ nombres: nombres, apellidos: apellidos }]);
-          
-        if (error) throw error;
-      }
+    if (!nombres.trim() || !apellidos.trim() || !correo.trim()) {
+      alert("Por favor complete todos los campos, incluyendo el correo.");
+      return;
+    }
 
-      cancelarEdicion();
-      obtenerAlumnos();
-      
+    try {
+      // Ahora enviamos también el correo a la tabla
+      const { error } = await supabase
+        .from('estudiantes')
+        .insert([{ nombres, apellidos, correo }]);
+
+      if (error) throw error;
+
+      // Limpiamos el formulario y recargamos la tabla
+      setNombres('');
+      setApellidos('');
+      setCorreo('');
+      obtenerEstudiantes();
+      alert("Estudiante registrado exitosamente.");
     } catch (error) {
-      alert("Hubo un error al guardar: " + error.message);
-    } finally {
-      setGuardando(false);
+      console.error("Error al guardar:", error.message);
+      alert("Hubo un error al guardar al estudiante.");
     }
   };
 
-  const eliminarAlumno = async (id, nombreAlumno) => {
-    const confirmar = window.confirm(`¿Estás seguro de que deseas eliminar a ${nombreAlumno}?`);
-    if (confirmar) {
-      try {
-        const { error } = await supabase.from('estudiantes').delete().eq('id', id);
-        if (error) throw error;
-        obtenerAlumnos();
-      } catch (error) {
-        alert("Error al eliminar: " + error.message);
-      }
+  const eliminarEstudiante = async (id) => {
+    if(!window.confirm("¿Estás seguro de eliminar a este estudiante?")) return;
+    try {
+      const { error } = await supabase.from('estudiantes').delete().eq('id', id);
+      if (error) throw error;
+      obtenerEstudiantes();
+    } catch (error) {
+      console.error("Error al eliminar:", error.message);
     }
   };
 
@@ -97,81 +82,78 @@ export default function Alumnos() {
           </Link>
         </div>
 
-        <div className={`bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 ${idEditando ? 'border-yellow-500' : 'border-green-500'}`}>
-          <h2 className="text-lg font-bold text-gray-800 mb-4">
-            {idEditando ? 'Editar Estudiante' : 'Registrar Nuevo Estudiante'}
-          </h2>
-          
-          <form onSubmit={guardarAlumno} className="flex flex-col md:flex-row gap-4 items-center">
-            <input 
-              type="text" placeholder="Nombres" required 
-              value={nombres} onChange={(e) => setNombres(e.target.value)}
-              className="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500"
-            />
-            <input 
-              type="text" placeholder="Apellidos" required 
-              value={apellidos} onChange={(e) => setApellidos(e.target.value)}
-              className="flex-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500"
-            />
-            
-            <div className="flex gap-2 w-full md:w-auto">
+        {/* FORMULARIO DE REGISTRO */}
+        <div className="bg-white p-6 rounded-lg shadow-md mb-6 border-t-4 border-green-500">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">Registrar Nuevo Estudiante</h2>
+          <form onSubmit={guardarEstudiante} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+              <input 
+                type="text" 
+                placeholder="Nombres" 
+                value={nombres}
+                onChange={(e) => setNombres(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-green-500"
+              />
+            </div>
+            <div>
+              <input 
+                type="text" 
+                placeholder="Apellidos" 
+                value={apellidos}
+                onChange={(e) => setApellidos(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-green-500"
+              />
+            </div>
+            {/* NUEVO CAMPO DE CORREO */}
+            <div>
+              <input 
+                type="email" 
+                placeholder="Correo Electrónico" 
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-green-500"
+              />
+            </div>
+            <div>
               <button 
-                type="submit" disabled={guardando}
-                className={`flex-1 md:flex-none text-white px-6 py-2 rounded-md transition-colors font-medium ${idEditando ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'}`}
+                type="submit" 
+                className="w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition-colors"
               >
-                {guardando ? 'Guardando...' : (idEditando ? 'Actualizar' : 'Guardar')}
+                Guardar
               </button>
-              
-              {idEditando && (
-                <button 
-                  type="button" onClick={cancelarEdicion}
-                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
-                >
-                  Cancelar
-                </button>
-              )}
             </div>
           </form>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md overflow-x-auto border-t-4 border-blue-600">
+        {/* TABLA DE ESTUDIANTES */}
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto border-t-4 border-blue-500 p-2">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombres</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Apellidos</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Nombres</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Apellidos</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Correo</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              
-              {cargando && <tr><td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">Cargando base de datos...</td></tr>}
-              {!cargando && alumnos.length === 0 && <tr><td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">No hay estudiantes registrados aún.</td></tr>}
-
-              {!cargando && alumnos.map((alumno) => (
+              {cargando && <tr><td colSpan="4" className="px-6 py-4 text-center">Cargando...</td></tr>}
+              {!cargando && estudiantes.length === 0 && <tr><td colSpan="4" className="px-6 py-4 text-center">No hay estudiantes registrados.</td></tr>}
+              {!cargando && estudiantes.map((alumno) => (
                 <tr key={alumno.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{alumno.nombres}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{alumno.apellidos}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button 
-                      onClick={() => activarEdicion(alumno)}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
-                    >
-                      Editar
-                    </button>
-                    <button 
-                      onClick={() => eliminarAlumno(alumno.id, alumno.nombres)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Eliminar
-                    </button>
+                  <td className="px-6 py-4 text-sm font-bold text-gray-900">{alumno.nombres}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{alumno.apellidos}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{alumno.correo || 'Sin correo asignado'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    <button className="text-blue-600 hover:text-blue-800 font-medium mr-4">Editar</button>
+                    <button onClick={() => eliminarEstudiante(alumno.id)} className="text-red-600 hover:text-red-800 font-medium">Eliminar</button>
                   </td>
                 </tr>
               ))}
-
             </tbody>
           </table>
         </div>
+
       </div>
     </div>
   );

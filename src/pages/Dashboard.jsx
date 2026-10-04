@@ -48,9 +48,15 @@ export default function Dashboard() {
     }
   };
 
-  const cerrarSesion = async () => {
-    // Si usas Supabase Auth: await supabase.auth.signOut();
-    navigate('/'); // Redirige al login
+const cerrarSesion = async () => {
+    try {
+      // 1. Destruye la sesión de forma segura en Supabase
+      await supabase.auth.signOut();
+      // 2. Redirige al login de inmediato
+      navigate('/'); 
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error.message);
+    }
   };
 
   return (
